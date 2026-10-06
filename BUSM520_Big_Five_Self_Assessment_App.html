@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Big Five Personality and Leadership Behavior Self-Assessment</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #111111; --muted: #555555; --line: #999999; --soft: #f2f2f2;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #181818; --fg: #eeeeee; --muted: #aaaaaa; --line: #666666; --soft: #262626; }
+  }
+  :root[data-theme="dark"] { --bg: #181818; --fg: #eeeeee; --muted: #aaaaaa; --line: #666666; --soft: #262626; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Times New Roman", Times, serif; font-size: 18px; line-height: 1.5; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
+  h1 { font-size: 26px; margin: 0 0 8px; }
+  h2 { font-size: 21px; margin: 28px 0 8px; }
+  p { margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  .tabs { display: flex; gap: 8px; margin: 18px 0 14px; flex-wrap: wrap; }
+  .tabs button { font: inherit; padding: 8px 14px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); font-weight: bold; }
+  .scale { border: 1px solid var(--line); padding: 8px 12px; margin-bottom: 14px; background: var(--soft); }
+  .item { border-top: 1px solid var(--line); padding: 10px 0; }
+  .item:last-of-type { border-bottom: 1px solid var(--line); }
+  .item .q { margin-bottom: 6px; }
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opts label { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); padding: 5px 12px; cursor: pointer; min-width: 44px; justify-content: center; }
+  .opts input { margin: 0; }
+  .opts label:has(input:checked) { background: var(--fg); color: var(--bg); font-weight: bold; }
+  .opts label:focus-within { outline: 2px solid var(--fg); outline-offset: 2px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+  button.act { font: inherit; padding: 8px 16px; border: 1px solid var(--fg); background: var(--fg); color: var(--bg); cursor: pointer; }
+  button.alt { font: inherit; padding: 8px 16px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+  #progress { color: var(--muted); }
+  .warn { color: var(--fg); font-weight: bold; }
+  .tablewrap { overflow-x: auto; max-width: 100%; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--soft); }
+  .bar { background: var(--soft); border: 1px solid var(--line); height: 14px; min-width: 120px; position: relative; }
+  .bar span { display: block; height: 100%; background: var(--fg); }
+  textarea { width: 100%; box-sizing: border-box; font-family: "Times New Roman", Times, serif; font-size: 16px; background: var(--bg); color: var(--fg); border: 1px solid var(--line); padding: 8px; }
+  .hidden { display: none; }
+  @media print {
+    .tabs, .row, .item, .scale, #formWrap button, #copyBox { display: none !important; }
+    body { font-size: 12pt; background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Big Five Personality and Leadership Behavior Self-Assessment</h1>
+  <p>Two short questionnaires used in BUSM 520. The first measures the Big Five personality traits (OCEAN). The second shows whether your work behavior leans toward the task or toward people. Each takes about five minutes.</p>
+  <p class="muted">Your answers stay in this browser window. Nothing is sent or saved anywhere. If you close the page, your answers are gone, so copy your results first.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-big5" aria-selected="true" aria-controls="panel">Big Five Personality (25 items)</button>
+    <button role="tab" id="tab-lead" aria-selected="false" aria-controls="panel">Leadership Behavior (10 items)</button>
+  </div>
+
+  <div id="panel">
+    <div id="formWrap"></div>
+    <div id="results" class="hidden" aria-live="polite"></div>
+  </div>
+</main>
+
+<script>
+// ---------------------------------------------------------------
+// INSTRUMENTS. To change items, edit these lists.
+// r: true means reverse scored (score = 6 minus answer).
+// ---------------------------------------------------------------
+var BIG5 = {
+  id: "big5",
+  title: "Big Five Personality",
+  intro: "Rate how well each statement describes you as you generally are now, not as you wish to be.",
+  scale: "1 = Very inaccurate, 2 = Moderately inaccurate, 3 = Neither, 4 = Moderately accurate, 5 = Very accurate",
+  items: [
+    ["I am the life of the party.", "E", false],
+    ["I sympathize with others' feelings.", "A", false],
+    ["I get chores done right away.", "C", false],
+    ["I have frequent mood swings.", "S", true],
+    ["I have a vivid imagination.", "O", false],
+    ["I don't talk a lot.", "E", true],
+    ["I am not interested in other people's problems.", "A", true],
+    ["I often forget to put things back in their proper place.", "C", true],
+    ["I am relaxed most of the time.", "S", false],
+    ["I am not interested in abstract ideas.", "O", true],
+    ["I talk to a lot of different people at parties.", "E", false],
+    ["I feel others' emotions.", "A", false],
+    ["I like order.", "C", false],
+    ["I get upset easily.", "S", true],
+    ["I have difficulty understanding abstract ideas.", "O", true],
+    ["I keep in the background.", "E", true],
+    ["I am not really interested in others.", "A", true],
+    ["I make a mess of things.", "C", true],
+    ["I seldom feel blue.", "S", false],
+    ["I do not have a good imagination.", "O", true],
+    ["I don't mind being the center of attention.", "E", false],
+    ["I make people feel at ease.", "A", false],
+    ["I pay attention to details.", "C", false],
+    ["I am easily disturbed.", "S", true],
+    ["I am full of ideas.", "O", false]
+  ],
+  traits: [
+    { k: "O", name: "Openness",
+      high: "You are curious and imaginative and you enjoy new ideas. Watch for chasing new ideas at the expense of finishing the current one.",
+      mid: "You balance new ideas with practical ones. You can brainstorm when needed and stay grounded when it matters.",
+      low: "You are practical and prefer proven methods. This keeps you steady, but you may resist change or push back on untested ideas too quickly." },
+    { k: "C", name: "Conscientiousness",
+      high: "You are organized, dependable, and detail oriented. Watch for rigidity, perfectionism, or doing work yourself that others could do.",
+      mid: "You are organized when it counts and flexible when it doesn't.",
+      low: "You are flexible and spontaneous. Follow-through and details are where you will want systems, reminders, or a teammate who is strong there." },
+    { k: "E", name: "Extraversion",
+      high: "You get energy from people and activity, and you speak up easily. Watch for talking more than you listen.",
+      mid: "You can be outgoing when the situation calls for it and quiet when it doesn't.",
+      low: "You are reserved and tend to think before you speak. You may influence people best one on one or in writing, and may need to speak up on purpose in groups." },
+    { k: "A", name: "Agreeableness",
+      high: "You care about people's feelings and work to keep relationships smooth. Watch for avoiding hard conversations or tough decisions.",
+      mid: "You can be supportive and also hold your ground when you need to.",
+      low: "You are direct, skeptical, and competitive. This helps with tough calls, but you may come across as dismissive of others' concerns." },
+    { k: "S", name: "Emotional stability (the opposite of neuroticism)",
+      high: "You stay calm under pressure and recover quickly from setbacks. Watch for brushing off real warning signs or other people's stress.",
+      mid: "You handle most stress well, with some situations that get to you more than others.",
+      low: "You feel stress and setbacks strongly (the textbook calls the trait neuroticism). That can make you alert to risks, but pressure may drain you. Knowing your triggers helps." }
+  ]
+};
+
+var LEAD = {
+  id: "lead",
+  title: "Leadership Behavior",
+  intro: "Rate how well each statement describes you at work.",
+  scale: "1 = Strongly disagree, 2 = Disagree, 3 = Neutral, 4 = Agree, 5 = Strongly agree",
+  items: [
+    ["I make sure people know what is expected of them.", "T", false],
+    ["I take time to listen to people's concerns.", "R", false],
+    ["I set clear goals and deadlines for the work.", "T", false],
+    ["I check in on how teammates are doing, not just the work.", "R", false],
+    ["I organize who does what on a task.", "T", false],
+    ["I make people feel comfortable bringing problems to me.", "R", false],
+    ["I keep track of progress and follow up on the details.", "T", false],
+    ["I recognize and appreciate people's contributions.", "R", false],
+    ["I push the group to meet standards and stay on schedule.", "T", false],
+    ["I try to be fair and supportive when someone is struggling.", "R", false]
+  ]
+};
+
+var answers = { big5: [], lead: [] };
+var current = "big5";
+
+function inst() { return current === "big5" ? BIG5 : LEAD; }
+
+function render() {
+  var I = inst();
+  var wrap = document.getElementById("formWrap");
+  document.getElementById("results").className = "hidden";
+  wrap.className = "";
+  var html = "<h2>" + I.title + "</h2><p>" + I.intro + "</p><div class='scale'>" + I.scale + "</div>";
+  I.items.forEach(function (it, i) {
+    html += "<div class='item'><div class='q'>" + (i + 1) + ". " + it[0] + "</div><div class='opts' role='radiogroup' aria-label='Item " + (i + 1) + "'>";
+    for (var v = 1; v <= 5; v++) {
+      var chk = answers[I.id][i] === v ? " checked" : "";
+      html += "<label><input type='radio' name='q" + i + "' value='" + v + "'" + chk + " data-i='" + i + "'> " + v + "</label>";
+    }
+    html += "</div></div>";
+  });
+  html += "<div class='row'><button class='act' id='scoreBtn'>See my results</button><button class='alt' id='clearBtn'>Clear answers</button><span id='progress'></span></div><p id='msg' class='warn'></p>";
+  wrap.innerHTML = html;
+  wrap.querySelectorAll("input[type=radio]").forEach(function (r) {
+    r.addEventListener("change", function () {
+      answers[I.id][parseInt(r.getAttribute("data-i"), 10)] = parseInt(r.value, 10);
+      updateProgress();
+    });
+  });
+  document.getElementById("scoreBtn").addEventListener("click", showResults);
+  document.getElementById("clearBtn").addEventListener("click", function () { answers[I.id] = []; render(); });
+  updateProgress();
+}
+
+function updateProgress() {
+  var I = inst(), n = 0;
+  for (var i = 0; i < I.items.length; i++) if (answers[I.id][i]) n++;
+  document.getElementById("progress").textContent = n + " of " + I.items.length + " answered";
+}
+
+function adj(I, i) {
+  var a = answers[I.id][i];
+  return I.items[i][2] ? 6 - a : a;
+}
+
+function band(s) { return s >= 19 ? "High" : (s >= 12 ? "Middle" : "Low"); }
+
+function computeBig5() {
+  var out = {};
+  BIG5.traits.forEach(function (t) { out[t.k] = 0; });
+  BIG5.items.forEach(function (it, i) { out[it[1]] += adj(BIG5, i); });
+  return out;
+}
+
+function computeLead() {
+  var t = { T: 0, R: 0 };
+  LEAD.items.forEach(function (it, i) { t[it[1]] += adj(LEAD, i); });
+  return t;
+}
+
+function leadRead(T, R) {
+  if (T >= 19 && R >= 19) return "High-high. You score high on both. This is the leader who shows strong concern for the work and for the people doing it.";
+  if (T <= 11 && R <= 11) return "Low on both. This suggests a hands-off style. Check whether that is a choice that fits your situation or a gap to work on.";
+  if (Math.abs(T - R) < 3) return "Balanced. Your two totals are within two points of each other, so you do not lean strongly either way.";
+  if (T > R) return "You lean toward initiating structure (the task). You tend to clarify goals, roles, and deadlines. Your growth edge is the people side: listening, checking in, and recognition.";
+  return "You lean toward consideration (the relationship). You tend to listen, support, and appreciate people. Your growth edge is the task side: clear goals, roles, and follow-up.";
+}
+
+function bar(s) { return "<div class='bar'><span style='width:" + Math.round((s - 5) / 20 * 100) + "%'></span></div>"; }
+
+function showResults() {
+  var I = inst(), msg = document.getElementById("msg");
+  for (var i = 0; i < I.items.length; i++) {
+    if (!answers[I.id][i]) { msg.textContent = "Please answer item " + (i + 1) + " (and any others left blank) to see your results."; return; }
+  }
+  msg.textContent = "";
+  var html = "<h2>Your results: " + I.title + "</h2><div class='tablewrap'>", text = "";
+  if (I.id === "big5") {
+    var s = computeBig5();
+    html += "<table><tr><th>Trait</th><th>Score (5 to 25)</th><th>Range</th><th></th></tr>";
+    text = "Big Five scores (each 5 to 25):\n";
+    BIG5.traits.forEach(function (t) {
+      html += "<tr><td>" + t.name + "</td><td>" + s[t.k] + "</td><td>" + band(s[t.k]) + "</td><td>" + bar(s[t.k]) + "</td></tr>";
+      text += t.name + ": " + s[t.k] + " (" + band(s[t.k]) + ")\n";
+    });
+    html += "</table></div><h2>What your scores suggest</h2>";
+    BIG5.traits.forEach(function (t) {
+      var b = band(s[t.k]);
+      var line = b === "High" ? t.high : (b === "Middle" ? t.mid : t.low);
+      html += "<p><b>" + t.name + " (" + s[t.k] + ", " + b.toLowerCase() + ").</b> " + line + "</p>";
+    });
+  } else {
+    var r = computeLead();
+    var read = leadRead(r.T, r.R);
+    html += "<table><tr><th>Style</th><th>Score (5 to 25)</th><th></th></tr>" +
+      "<tr><td>Initiating structure (task)</td><td>" + r.T + "</td><td>" + bar(r.T) + "</td></tr>" +
+      "<tr><td>Consideration (relationship)</td><td>" + r.R + "</td><td>" + bar(r.R) + "</td></tr></table></div>" +
+      "<h2>What your scores suggest</h2><p>" + read + "</p>";
+    text = "Leadership behavior scores (each 5 to 25):\nInitiating structure (task): " + r.T + "\nConsideration (relationship): " + r.R + "\nRead: " + read + "\n";
+  }
+  html += "<p class='muted'>These are self-reports and show how you see yourself right now. They are for learning and reflection, not for hiring or labeling anyone. Ranges: 5 to 11 low, 12 to 18 middle, 19 to 25 high.</p>" +
+    "<div class='row' id='copyBox'><button class='act' id='copyBtn'>Copy my results</button><button class='alt' id='printBtn'>Print</button><button class='alt' id='backBtn'>Change my answers</button><span id='copyNote' class='muted'></span></div>" +
+    "<p style='margin-top:12px'><textarea id='copyText' rows='" + (text.split("\n").length + 1) + "' readonly></textarea></p>";
+  var box = document.getElementById("results");
+  box.innerHTML = html;
+  box.className = "";
+  document.getElementById("formWrap").className = "hidden";
+  document.getElementById("copyText").value = text;
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var ta = document.getElementById("copyText"), note = document.getElementById("copyNote");
+    function done() { note.textContent = "Copied."; }
+    function fallback() { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { note.textContent = "Select the text below and copy it."; } }
+    try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
+  });
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+  document.getElementById("backBtn").addEventListener("click", render);
+  box.scrollIntoView();
+}
+
+function setTab(which) {
+  current = which;
+  document.getElementById("tab-big5").setAttribute("aria-selected", which === "big5");
+  document.getElementById("tab-lead").setAttribute("aria-selected", which === "lead");
+  render();
+}
+document.getElementById("tab-big5").addEventListener("click", function () { setTab("big5"); });
+document.getElementById("tab-lead").addEventListener("click", function () { setTab("lead"); });
+render();
+</script>
+</body>
+</html>
